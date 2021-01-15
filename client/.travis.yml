@@ -1,0 +1,24 @@
+sudo: required
+services:
+  - docker
+
+before_install: 
+  - docker build -t xnyze/docker-test -f ./client/Dockerfile.dev .
+
+script:
+  - docker run -e CI=true xnyze/react-test npm run test
+
+after_sucesss:
+  - docker build -t xnyze/multi-client ./client
+  - docker build -t xnyze/multi-nginx ./nginx
+  - docker build -t xnyze/multi-server ./server
+  - docker build -t xnyze/multi-worker ./worker
+  
+#Log in into the docker CLI
+- echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+#Take those images and push them to docker hub
+- docker push xnyze/multi-client
+- docker push xnyze/multi-nginx
+- docker push xnyze/multi-server
+- docker push xnyze/multi-worker
